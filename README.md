@@ -1,6 +1,44 @@
-# aroos_little_days
+# Aroo's Little Days
 
-A new Flutter project.
+A cozy hidden-object mobile game inspired by slice-of-life artwork and relaxing exploration games.
+
+## About
+
+Aroo's Little Days is a Flutter-based hidden-object game featuring Aroo, a curious beagle who enjoys summer adventures, good food, and relaxing days. Players discover hidden hearts within illustrated scenes to reveal full-color wallpapers and unlock new episodes.
+
+## Features
+
+* Hidden-object gameplay
+* Watercolor reveal effect
+* Unlockable wallpapers
+* Episode progression system
+* Cozy hand-drawn artwork
+* Built with Flutter
+
+## Current Episode
+
+### Episode 1: Pool Days
+
+Help Aroo find all 10 hidden hearts hidden throughout a summer pool scene. Each heart reveals a portion of the full-color illustration.
+
+## Technology
+
+* Flutter
+* Dart
+* GitHub
+
+## Future Plans
+
+* Additional episodes
+* Unlockable stickers and stamps
+* Memory gallery
+* Sound effects and music
+* Downloadable wallpapers
+
+## Status
+
+Currently in active development.
+
 
 ## Getting Started
 
