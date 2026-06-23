@@ -1,6 +1,67 @@
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
 
+final AudioPlayer bgmPlayer = AudioPlayer();
+
+bool globalBgmEnabled = true;
+String selectedLanguage = "English";
+
+String t(String key) {
+  final Map<String, Map<String, String>> translations = {
+    "English": {
+      "tapStart": "tap to start",
+      "episode": "Episode",
+      "settings": "Settings",
+      "gameSettings": "Game Settings",
+      "soundEffects": "Sound Effects",
+      "backgroundMusic": "Background Music",
+      "language": "Language",
+      "progress": "Progress",
+      "achievements": "Achievements",
+      "gameData": "Game Data",
+      "restorePurchases": "Restore Purchases",
+      "wallpapers": "Wallpapers",
+      "stamps": "Stamps",
+      "memories": "Memories",
+    },
+    "Spanish": {
+      "tapStart": "toca para empezar",
+      "episode": "Episodio",
+      "settings": "Configuración",
+      "gameSettings": "Ajustes del juego",
+      "soundEffects": "Efectos de sonido",
+      "backgroundMusic": "Música de fondo",
+      "language": "Idioma",
+      "progress": "Progreso",
+      "achievements": "Logros",
+      "gameData": "Datos del juego",
+      "restorePurchases": "Restaurar compras",
+      "wallpapers": "Fondos",
+      "stamps": "Sellos",
+      "memories": "Recuerdos",
+    },
+    "French": {
+      "tapStart": "appuyez pour commencer",
+      "episode": "Épisode",
+      "settings": "Paramètres",
+      "gameSettings": "Paramètres du jeu",
+      "soundEffects": "Effets sonores",
+      "backgroundMusic": "Musique de fond",
+      "language": "Langue",
+      "progress": "Progression",
+      "achievements": "Succès",
+      "gameData": "Données du jeu",
+      "restorePurchases": "Restaurer les achats",
+      "wallpapers": "Fonds d’écran",
+      "stamps": "Tampons",
+      "memories": "Souvenirs",
+    },
+  };
+
+  return translations[selectedLanguage]?[key] ?? key;
+}
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const AroosLittleDays());
 }
 
@@ -51,16 +112,24 @@ class StartScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const HomeScreen(),
-                      ),
-                    );
-                  },
-                  child: const Text(
-                    "tap to start",
+                  onPressed: () async {
+  await bgmPlayer.setReleaseMode(ReleaseMode.loop);
+
+  await bgmPlayer.play(
+    AssetSource('music/bgm.mp3'),
+  );
+
+  if (!context.mounted) return;
+
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (context) => const HomeScreen(),
+    ),
+  );
+},
+                  child: Text(
+                    t("tapStart"),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
@@ -86,25 +155,34 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final PageController _pageController = PageController(viewportFraction: 0.72);
+  final PageController _pageController =
+      PageController(viewportFraction: 0.72);
 
-  final int currentEpisode = 1;
+  final int currentEpisode = 5;
   int selectedEpisode = 0;
 
   final List<Map<String, String>> episodes = [
-    {
-      "title": "Pool Days",
-      "image": "assets/images/episode1_pool_color.png",
-    },
-    {
-      "title": "Beach Drive",
-      "image": "assets/images/episode1_pool_color.png",
-    },
-    {
-      "title": "Ice Cream Walk",
-      "image": "assets/images/episode1_pool_color.png",
-    },
-  ];
+  {
+    "title": "Pool Days",
+    "image": "assets/images/episode1_pool_color.png",
+  },
+  {
+    "title": "Beach Drive",
+    "image": "assets/images/coming_soon.png",
+  },
+  {
+    "title": "Ice Cream Walk",
+    "image": "assets/images/coming_soon.png",
+  },
+  {
+    "title": "Firefly Night",
+    "image": "assets/images/coming_soon.png",
+  },
+  {
+    "title": "Rainy Day",
+    "image": "assets/images/coming_soon.png",
+  },
+];
 
   void startEpisode() {
     if (selectedEpisode == 0) {
@@ -127,27 +205,39 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void goRight() {
-    if (selectedEpisode < currentEpisode - 1) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
+  if (selectedEpisode < currentEpisode - 1) {
+    _pageController.nextPage(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
 
+      endDrawer: const RoochachaMenu(),
+
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.menu, color: Color(0xFF7DBEAE), size: 32),
-            onPressed: () {},
+          Builder(
+            builder: (context) {
+              return IconButton(
+                icon: const Icon(
+                  Icons.menu,
+                  color: Color(0xFF7DBEAE),
+                  size: 32,
+                ),
+                onPressed: () {
+                  Scaffold.of(context).openEndDrawer();
+                },
+              );
+            },
           ),
           const SizedBox(width: 18),
         ],
@@ -343,7 +433,234 @@ class EpisodeCard extends StatelessWidget {
     );
   }
 }
+class RoochachaMenu extends StatelessWidget {
+  const RoochachaMenu({super.key});
 
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      backgroundColor: Colors.white,
+      child: SafeArea(
+        child: Column(
+          children: [
+            const SizedBox(height: 30),
+
+            const Text(
+              "Aroo's Menu",
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF7DBEAE),
+              ),
+            ),
+
+            const SizedBox(height: 30),
+
+            MenuButton(
+              icon: Icons.image_outlined,
+              label: "Wallpapers",
+              onTap: () {},
+            ),
+
+            MenuButton(
+              icon: Icons.stars_outlined,
+              label: "Stamps",
+              onTap: () {},
+            ),
+
+            MenuButton(
+              icon: Icons.movie_creation_outlined,
+              label: "Memories",
+              onTap: () {},
+            ),
+
+            MenuButton(
+              icon: Icons.settings_outlined,
+              label: "Settings",
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SettingsScreen(),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+class MenuButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const MenuButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(icon, color: Color(0xFF7DBEAE), size: 30),
+      title: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 20,
+          color: Color(0xFF5B7C8A),
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      onTap: onTap,
+    );
+  }
+}
+class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool soundOn = true;
+  bool bgmOn = globalBgmEnabled;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Text(
+          t("settings"),
+          style: const TextStyle(color: Colors.black),
+        ),
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
+
+      body: ListView(
+        padding: const EdgeInsets.all(24),
+        children: [
+          SettingsSectionTitle(t("gameSettings")),
+
+          SwitchListTile(
+            title: Text(t("soundEffects")),
+            value: soundOn,
+            activeThumbColor: const Color(0xFF7DBEAE),
+            onChanged: (value) {
+              setState(() {
+                soundOn = value;
+              });
+            },
+          ),
+
+          SwitchListTile(
+            title: Text(t("backgroundMusic")),
+            value: bgmOn,
+            activeThumbColor: const Color(0xFF7DBEAE),
+            onChanged: (value) async {
+              setState(() {
+                bgmOn = value;
+                globalBgmEnabled = value;
+              });
+
+              if (value) {
+                await bgmPlayer.resume();
+              } else {
+                await bgmPlayer.pause();
+              }
+            },
+          ),
+
+          const SizedBox(height: 20),
+
+          SettingsSectionTitle(t("language")),
+
+          DropdownButtonFormField<String>(
+            initialValue: selectedLanguage,
+            decoration: InputDecoration(
+              labelText: t("language"),
+              border: const OutlineInputBorder(),
+            ),
+            items: const [
+              DropdownMenuItem(
+                value: "English",
+                child: Text("English"),
+              ),
+              DropdownMenuItem(
+                value: "Spanish",
+                child: Text("Spanish"),
+              ),
+              DropdownMenuItem(
+                value: "French",
+                child: Text("French"),
+              ),
+            ],
+            onChanged: (value) {
+              if (value == null) return;
+
+              setState(() {
+                selectedLanguage = value;
+              });
+            },
+          ),
+
+          const SizedBox(height: 20),
+
+          SettingsSectionTitle(t("progress")),
+
+          ListTile(
+            title: Text(t("achievements")),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {},
+          ),
+
+          ListTile(
+            title: Text(t("gameData")),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {},
+          ),
+
+          ListTile(
+            title: Text(t("restorePurchases")),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {},
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SettingsSectionTitle extends StatelessWidget {
+  final String title;
+
+  const SettingsSectionTitle(this.title, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 18, bottom: 8),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF7DBEAE),
+        ),
+      ),
+    );
+  }
+}
 class EpisodeOneScreen extends StatefulWidget {
   const EpisodeOneScreen({super.key});
 
@@ -471,14 +788,14 @@ class _EpisodeOneScreenState extends State<EpisodeOneScreen> {
                         for (int i = 0; i < hearts.length; i++)
                           if (!foundHearts.contains(i))
                             Positioned(
-                              left: hearts[i].dx * scaleX - 65,
-                              top: hearts[i].dy * scaleY - 65,
+                              left: hearts[i].dx * scaleX - 30,
+                              top: hearts[i].dy * scaleY - 30,
                               child: GestureDetector(
                                 behavior: HitTestBehavior.opaque,
                                 onTap: () => findHeart(i),
                                 child: Container(
-                                  width: 130,
-                                  height: 130,
+                                  width: 70,
+                                  height: 70,
                                   color: Colors.transparent,
                                 ),
                               ),
